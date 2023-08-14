@@ -20,7 +20,16 @@ func main() {
 		log.Error("error opening db", sl.Err(err))
 		os.Exit(1)
 	}
-	_ = storage
+
+	// check that saveURL works
+	for i := 0; i < 2; i++ {
+		id, err := storage.SaveURL("https://youtu.be/abc", "rick")
+		if err != nil {
+			log.Error("failed to save url", sl.Err(err))
+			os.Exit(1)
+		}
+		log.Info("saved url", slog.Int64("id", id))
+	}
 
 	// TODO: router: chi, "chi render"
 
