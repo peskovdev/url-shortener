@@ -13,7 +13,7 @@ const (
 
 // TODO: add ENVs
 type Config struct {
-	Env         string           `yaml:"environment" env-default:"prod"`
+	Env         Env              `yaml:"env" env-default:"prod"`
 	StoragePath string           `yaml:"storage_path" env-required:"true"`
 	HTTPServer  HTTPServerConfig `yaml:"http_server" env-default:"local"`
 }
@@ -32,7 +32,7 @@ func MustLoad() *Config {
 
 	// check if file exists
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		log.Fatal("config file does not exist: %s", configPath)
+		log.Fatalf("config file does not exist: %s", configPath)
 	}
 
 	var cfg Config
