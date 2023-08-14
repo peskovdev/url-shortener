@@ -1,7 +1,11 @@
 package main
 
+import (
+	"github.com/peskovdev/url-shortener/internal/config"
+)
+
 func main() {
-	// TODO: init config: cleanenv
+	config.MustLoad()
 
 	// TODO: init logger: slog
 
