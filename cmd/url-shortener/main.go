@@ -1,7 +1,10 @@
 package main
 
 import (
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/peskovdev/url-shortener/internal/config"
+	customMiddleware "github.com/peskovdev/url-shortener/internal/http-server/middleware"
 	"github.com/peskovdev/url-shortener/internal/lib/logger/sl"
 	"github.com/peskovdev/url-shortener/internal/storage/sqlite"
 	"log/slog"
@@ -20,32 +23,13 @@ func main() {
 		log.Error("error opening db", sl.Err(err))
 		os.Exit(1)
 	}
+	_ = storage
 
-	// check that saveURL works
-	alias := "rick"
-	_, err = storage.SaveURL("https://youtu.be/abc", alias)
-	if err != nil {
-		log.Error("failed to save url", sl.Err(err))
-		os.Exit(1)
-	}
-	urlOriginal, err := storage.GetOriginalURL(alias)
-	if err != nil {
-		log.Error("failed to get url", sl.Err(err))
-		os.Exit(1)
-	}
-	log.Info(urlOriginal)
-	err = storage.DeleteURL(alias)
-	if err != nil {
-		log.Error("failed to delete url", sl.Err(err))
-		os.Exit(1)
-	}
-	err = storage.DeleteURL(alias)
-	if err != nil {
-		log.Error("failed to delete url", sl.Err(err))
-		os.Exit(1)
-	}
-
-	// TODO: router: chi, "chi render"
+	router := chi.NewRouter()
+	router.Use(middleware.RequestID)
+	router.Use(customMiddleware.New(log))
+	router.Use(middleware.Recoverer)
+	router.Use(middleware.URLFormat)
 
 	// TODO: run server
 }
