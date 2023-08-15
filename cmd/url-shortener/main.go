@@ -4,7 +4,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/peskovdev/url-shortener/internal/config"
-	customMiddleware "github.com/peskovdev/url-shortener/internal/http-server/middleware"
+	mwLogger "github.com/peskovdev/url-shortener/internal/http-server/middleware"
+	"github.com/peskovdev/url-shortener/internal/lib/logger/handlers/slogpretty"
 	"github.com/peskovdev/url-shortener/internal/lib/logger/sl"
 	"github.com/peskovdev/url-shortener/internal/storage/sqlite"
 	"log/slog"
@@ -15,8 +16,10 @@ func main() {
 	cfg := config.MustLoad()
 
 	log := setupLogger(cfg.Env)
-	log.Info("starting url-shortener", slog.String("env", string(cfg.Env)))
+	log.Info("starting url-shortener", slog.String("env", string(cfg.Env)), slog.String("version", "1.0"))
 	log.Debug("debug message are enabled")
+	log.Warn("Some warn")
+	log.Error("ALARM")
 
 	storage, err := sqlite.New(cfg.StoragePath)
 	if err != nil {
@@ -27,7 +30,7 @@ func main() {
 
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
-	router.Use(customMiddleware.New(log))
+	router.Use(mwLogger.New(log))
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
@@ -39,7 +42,7 @@ func setupLogger(env config.Env) *slog.Logger {
 	switch env {
 	case config.EnvLocal:
 		log = slog.New(
-			slog.NewTextHandler(
+			slogpretty.NewPrettyHandler(
 				os.Stdout,
 				&slog.HandlerOptions{Level: slog.LevelDebug},
 			),
