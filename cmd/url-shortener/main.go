@@ -22,13 +22,27 @@ func main() {
 	}
 
 	// check that saveURL works
-	for i := 0; i < 2; i++ {
-		id, err := storage.SaveURL("https://youtu.be/abc", "rick")
-		if err != nil {
-			log.Error("failed to save url", sl.Err(err))
-			os.Exit(1)
-		}
-		log.Info("saved url", slog.Int64("id", id))
+	alias := "rick"
+	_, err = storage.SaveURL("https://youtu.be/abc", alias)
+	if err != nil {
+		log.Error("failed to save url", sl.Err(err))
+		os.Exit(1)
+	}
+	urlOriginal, err := storage.GetOriginalURL(alias)
+	if err != nil {
+		log.Error("failed to get url", sl.Err(err))
+		os.Exit(1)
+	}
+	log.Info(urlOriginal)
+	err = storage.DeleteURL(alias)
+	if err != nil {
+		log.Error("failed to delete url", sl.Err(err))
+		os.Exit(1)
+	}
+	err = storage.DeleteURL(alias)
+	if err != nil {
+		log.Error("failed to delete url", sl.Err(err))
+		os.Exit(1)
 	}
 
 	// TODO: router: chi, "chi render"
