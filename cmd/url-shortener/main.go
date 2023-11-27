@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/peskovdev/url-shortener/internal/config"
+	"github.com/peskovdev/url-shortener/internal/storage/sqlite"
 	"log/slog"
 	"os"
 )
@@ -16,9 +17,14 @@ func main() {
 
 	log := setupLogger(cfg.Env)
 	log.Info("starting url-shortener", slog.String("env", cfg.Env))
-	log.Debug("Debug messages are enabled")
+	log.Debug("debug messages are enabled")
 
-	// TODO: init storage: sqlite
+	storage, err := sqlite.New(cfg.StoragePath)
+	if err != nil {
+		log.Error("failed init storage", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
+	_ = storage
 
 	// TODO: init router: chi, "chi render"
 
