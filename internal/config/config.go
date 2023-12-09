@@ -11,7 +11,7 @@ import (
 // TODO: implement .env
 
 type Config struct {
-	Env         string `yaml:"env" env-default:"dev"`
+	Env         string `yaml:"env" env-require:"true"`
 	StoragePath string `yaml:"storage_path" env-required:"true"`
 	HTTPServer  `yaml:"http_server"`
 }
