@@ -1,10 +1,17 @@
 package main
 
 import (
-	"github.com/peskovdev/url-shortener/internal/config"
-	"github.com/peskovdev/url-shortener/internal/storage/sqlite"
 	"log/slog"
+	"net/http"
 	"os"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+
+	"github.com/peskovdev/url-shortener/internal/config"
+	"github.com/peskovdev/url-shortener/internal/http-server/handlers/url/save"
+	mwLogger "github.com/peskovdev/url-shortener/internal/http-server/middleware/logger"
+	"github.com/peskovdev/url-shortener/internal/storage/sqlite"
 )
 
 const (
@@ -25,11 +32,28 @@ func main() {
 		log.Error("failed init storage", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
-	_ = storage
 
-	// TODO: init router: chi, "chi render"
+	router := chi.NewRouter()
 
-	// TODO: run server
+	router.Use(middleware.RequestID)
+	router.Use(mwLogger.New(log))
+	router.Use(middleware.Recoverer)
+	router.Use(middleware.URLFormat)
+
+	router.Post("/url", save.New(log, storage))
+
+	log.Info("starting server", slog.String("address", cfg.Address))
+	srv := &http.Server{
+		Addr:         cfg.Address,
+		Handler:      router,
+		ReadTimeout:  cfg.HTTPServer.Timeout,
+		WriteTimeout: cfg.HTTPServer.Timeout,
+		IdleTimeout:  cfg.HTTPServer.IdleTimeout,
+	}
+	if err := srv.ListenAndServe(); err != nil {
+		log.Error("failed to start server")
+	}
+	log.Error("server stopped")
 }
 
 func setupLogger(env string) *slog.Logger {
